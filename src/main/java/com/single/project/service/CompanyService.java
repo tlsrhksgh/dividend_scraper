@@ -5,13 +5,17 @@ import com.single.project.domain.company.CompanyRepository;
 import com.single.project.domain.dividend.DividendEntity;
 import com.single.project.domain.dividend.DividendRepository;
 import com.single.project.model.Company;
+import com.single.project.model.Dividend;
 import com.single.project.model.ScrapedResult;
 import com.single.project.scraper.YahooFinanceScraper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -52,4 +56,50 @@ public class CompanyService {
         return company;
     }
 
+    public List<Company> getAllCompany() {
+
+        return companyRepository.findAll().stream()
+                .map(e -> Company.builder()
+                        .ticker(e.getTicker())
+                        .name(e.getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String deleteCompany(String ticker) {
+        ticker = ticker.toUpperCase(Locale.ROOT);
+        CompanyEntity company = companyRepository.findByTicker(ticker)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 회사 입니다."));
+
+        dividendRepository.deleteAllByCompanyId(company.getId());
+        companyRepository.delete(company);
+
+        return company.getName();
+    }
+
+    public ScrapedResult getCompany(String ticker) {
+        ticker = ticker.toUpperCase(Locale.ROOT);
+        CompanyEntity companyEntity = companyRepository.findByTicker(ticker)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 회사 입니다. "));
+
+        List<DividendEntity> dividendEntity = dividendRepository.findByCompanyId(companyEntity.getId());
+
+        Company company = Company.builder()
+                .name(companyEntity.getName())
+                .ticker(companyEntity.getTicker())
+                .build();
+
+        List<Dividend> dividends = dividendEntity.stream()
+                .map(e -> Dividend.builder()
+                        .date(e.getDate())
+                        .dividend(e.getDividend())
+                        .build())
+                .collect(Collectors.toList());
+
+        return ScrapedResult.builder()
+                .company(company)
+                .dividends(dividends)
+                .build();
+    }
 }
