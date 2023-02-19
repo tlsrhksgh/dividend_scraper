@@ -50,4 +50,11 @@ public class CompanyController {
         return ResponseEntity.ok(companyName);
     }
 
+    @GetMapping("/autocomplete")
+    public ResponseEntity<List<String>> autoComplete(@RequestParam String keyword) {
+        List<String> result = companyService.getCompanyNameByKeyword(keyword);
+
+        return ResponseEntity.ok(result);
+    }
+
 }

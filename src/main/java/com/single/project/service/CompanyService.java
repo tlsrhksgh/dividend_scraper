@@ -102,4 +102,13 @@ public class CompanyService {
                 .dividends(dividends)
                 .build();
     }
+
+    public List<String> getCompanyNameByKeyword(String keyword) {
+
+        List<CompanyEntity> companyEntityList = companyRepository.findByNameStartingWithIgnoreCase(keyword);
+
+        return companyEntityList.stream()
+                .map(e -> e.getName())
+                .collect(Collectors.toList());
+    }
 }
