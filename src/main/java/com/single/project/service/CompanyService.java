@@ -7,13 +7,14 @@ import com.single.project.domain.dividend.DividendRepository;
 import com.single.project.model.Company;
 import com.single.project.model.Dividend;
 import com.single.project.model.ScrapedResult;
+import com.single.project.model.constants.CacheKey;
 import com.single.project.scraper.YahooFinanceScraper;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ public class CompanyService {
         return company.getName();
     }
 
+    @Cacheable(key = "#ticker", value= CacheKey.KEY_FINANCE)
     public ScrapedResult getCompany(String ticker) {
         ticker = ticker.toUpperCase(Locale.ROOT);
         CompanyEntity companyEntity = companyRepository.findByTicker(ticker)
